@@ -58,8 +58,9 @@ def get_user(db:Session,user_id:int):
     return db.query(models.User).filter(models.User.id==user_id).first()
 
 #To get all user
-def get_all(db:Session,skip:int,limit:int):
-    return db.query(models.User).all()
+def get_all_user(db: Session, skip: int , limit: int):
+    return db.query(models.Role).offset(skip).limit(limit).all()
+
 
 #To get delete Single user
 def delete_user(db: Session, db_user: models.User):
@@ -149,6 +150,34 @@ def update_role_date(db: Session, user_id: int, user: schemas.UpdateUserSchema):
 def get_role(db: Session, role_name: str):
     return db.query(models.Role).filter(models.Role.name == role_name).first()
 
+#To get a Single Role
+def get_role_id(db: Session, role_id: int):
+    single_role=db.query(models.Role).filter(models.Role.id == role_id).first()
+    if single_role:
+        return single_role
+    else:
+        return{"detail": "Role not found"}
+
+#To get all Role
+def get_all_roles(db: Session, skip: int, limit: int ):
+    return db.query(models.Role).offset(skip).limit(limit).all()
+
+    
+#TO get Role already exists are Not for Delete
+def get_role_delete(db: Session, role_name: str):
+    role=db.query(models.Role).filter(models.Role.name == role_name).first()
+    if role:
+        return role
+    else:
+        return {"detail": "Role not found"}
+    
+#To delete Role
+def delete_role_id(db: Session, db_role:int ):
+    role=db.query(models.Role).filter(models.Role.id == db_role).first()
+    db.delete(role)
+    db.commit()
+    return {"message": "Role deleted successfully"}
+
 
 
 #To check user for forget user 
@@ -171,7 +200,7 @@ def Update_otp(db: Session, email: str, hash_otp: str ,expire_at:datetime):
         db.refresh(user)
         return user
     return {"message":"User not Found"}
-#To Validate otp
+#To Vlaidate otp
 def Otp_check(db:Session,OTP=str):
    hashed_otp=hashlib.sha256(str(OTP).encode()).hexdigest()
    user=db.query(models.User).filter(models.User.otp==hashed_otp).first()

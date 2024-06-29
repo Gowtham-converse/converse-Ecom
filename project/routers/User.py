@@ -185,9 +185,9 @@ async def get_user_single(user_id: int, db: Session = Depends(get_db),current_us
 #To get All user
 @router.get("/all")
 async def get_user_all(skip:int=0,limit:int=100,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
-    db_all=crud.get_all(db,skip,limit)
+    db_all=crud.get_all_user(db,skip,limit)
     if db_all is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="DataBase is Empty")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=" User DataBase is Empty")
     return db_all
 
 #to delete user
@@ -273,26 +273,7 @@ def update_user(user_id: int, user: schemas.UpdateUserSchema, db: Session = Depe
     if d:
             response = crud.update_role_date(db, user_id, user)
     return response
-    # return {"message":"User and Role are created Successfully","d":d}
 
-
-
-
-
-
-        # return {"message": "User updated successfully"}
-    
-    
-    
-
-    
-    
-    # try:
-    #     d=crud.create_user_role(db, user_id, db_role.id)
-    #     return {"message":"User and Role are created Successfully"}
-    # except Exception as e:
-    # #     raise HTTPException(status_code=500, detail=f"Failed to create user role: {str(e)}")
-    
   
 
 
