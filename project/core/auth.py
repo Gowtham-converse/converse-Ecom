@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi  import HTTPException
 from datetime import datetime
 from project.database import get_db
-from project import crud ,schemas
+from project import crud ,schemas,models
 #copy
 from datetime import datetime, timedelta
 from typing import Optional
