@@ -200,7 +200,7 @@ def Update_otp(db: Session, email: str, hash_otp: str ,expire_at:datetime):
         db.refresh(user)
         return user
     return {"message":"User not Found"}
-#To Vlaidate otp
+#To Validate otp
 def Otp_check(db:Session,OTP=str):
    hashed_otp=hashlib.sha256(str(OTP).encode()).hexdigest()
    user=db.query(models.User).filter(models.User.otp==hashed_otp).first()
