@@ -59,7 +59,7 @@ def check_exist_user_email(db:Session,email:str):
     user=crud.Check_user_email(db,email)
     return user
 
-#To create Acess token by refersh Token
+#To create Access token by refresh Token
 def get_access_token_use_refresh_token(token:schemas.refresh_Token,db:Session):
   try:
         payload = jwt.decode(token.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])

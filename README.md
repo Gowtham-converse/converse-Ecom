@@ -10,7 +10,7 @@
    **UserRole**
     - **user_id**, **role_id**, **user**,**role**(user and Relation to the **User** table and **Role** table)
 - database => sqlite
-- authentication => JWT Autentication
+- authentication => JWT Authentication
 
 ## Structured Tree
 ```
@@ -50,8 +50,8 @@
 **/user/email_To_Forget_Password**:Api used to Change passwords if the user Forget the Password user Verification by the Email **(put)**
 **/user/otp_verify**: Api used to verify the otp Allow user Change Password in Forget Password **(post)**
 **/user/change_froget_password**: Api perform , once the user verify the otp  user Allowed to  Change Password  in fileds for new_password **(put)**
-**/user/create/User_Role**:Api used to create a User with Role Manually by  Anotheruser **(post)**
-**/user/user/{user_id}**:Api used to update the created User with Role Manually by  Anotheruser **(put)**
+**/user/create/User_Role**:Api used to create a User with Role Manually by  Another user **(post)**
+**/user/user/{user_id}**:Api used to update the created User with Role Manually by  Anothe ruser **(put)**
 **/Role/create/role**:Api used to Create the Role  **(post)**
 # Setup
 Creat folder by the Structured Tree

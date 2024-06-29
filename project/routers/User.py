@@ -143,7 +143,7 @@ async def verify_otp_token(otp:schemas.OTP,db:Session=Depends(get_db)):
 
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
-#To create Acess token by refersh Token
+#To create Access token by refresh Token
 @router.post("/refresh_token/")
 async def refresh_token(refresh_token:schemas.refresh_Token,db:Session=Depends(get_db)):
     try:
@@ -201,8 +201,8 @@ async def delete_user(user_id: int, db: Session = Depends(get_db),current_user=D
     
 #Email Verification for ForgetPassword
 @router.put("/email_To_Forget_Password")
-async def Email_verify(Eamil:schemas.ResetEmail,db:Session=Depends(get_db)):
-    email=Eamil.email
+async def Email_verify(Email:schemas.ResetEmail,db:Session=Depends(get_db)):
+    email=Email.email
     user = crud.email_exists(db,email) 
     if user:
         otp_data = config.generate_otp_and_hash()
@@ -222,10 +222,10 @@ async def Otp_Verify_To_Forget_Password (otp:schemas.ResetOtp,db:Session=Depends
     otp=otp.otp
     user=auth.Check_OTP_valid(db,otp)
     if  user:
-        return {"messgae":"OTP verified Successfully","details":user}
+        return {"message":"OTP verified Successfully","details":user}
 
-@router.put("/Change_Froget_Password")
-async def Change_Froget_Password(user:schemas.ResetPassword,Otp:int,db:Session=Depends(get_db)):
+@router.put("/Change_Forget_Password")
+async def Change_Forget_Password(user:schemas.ResetPassword,Otp:int,db:Session=Depends(get_db)):
     new_password=user.NewPassword
     confirm_password=user.ConfirmPassword
 
@@ -234,7 +234,7 @@ async def Change_Froget_Password(user:schemas.ResetPassword,Otp:int,db:Session=D
         otp=Otp
         # user=db.query(models.User).filter(models.User.otp==otp).first()
         # print(user.email)
-        print("thi sspos sioubfd  passsword",otp)
+        print("thi sspos sioubfd  password",otp)
         user_data=auth.Check_OTP_valid(db,otp)
         print("hi jknkinvkisdnivfnsdivfndivfn",user_data.id)
         if  user_data:
@@ -250,7 +250,7 @@ async def create_user_role(user: schemas.User_role, db: Session = Depends(get_db
     if existing_user is None:
         db_user = crud.create_user_role(db, user)
         db_role = crud.get_role(db, user.roles)
-        print("roleee ",db_role)
+        print("role ",db_role)
         
         if not db_role:
             raise HTTPException(status_code=404, detail="Role not found")
@@ -258,7 +258,7 @@ async def create_user_role(user: schemas.User_role, db: Session = Depends(get_db
         # Create user role association
         try:
             d=crud.update_user_role(db, db_user, db_role.id)
-            return {"message":"User and Role are created Sucessfully"}
+            return {"message":"User and Role are created Successfully"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to create user role: {str(e)}")
     else:
@@ -273,7 +273,7 @@ def update_user(user_id: int, user: schemas.UpdateUserSchema, db: Session = Depe
     if d:
             response = crud.update_role_date(db, user_id, user)
     return response
-    # return {"message":"User and Role are created Sucessfully","d":d}
+    # return {"message":"User and Role are created Successfully","d":d}
 
 
 
@@ -289,7 +289,7 @@ def update_user(user_id: int, user: schemas.UpdateUserSchema, db: Session = Depe
     
     # try:
     #     d=crud.create_user_role(db, user_id, db_role.id)
-    #     return {"message":"User and Role are created Sucessfully"}
+    #     return {"message":"User and Role are created Successfully"}
     # except Exception as e:
     # #     raise HTTPException(status_code=500, detail=f"Failed to create user role: {str(e)}")
     
