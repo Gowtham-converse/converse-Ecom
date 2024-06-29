@@ -18,7 +18,7 @@ router = APIRouter(
     tags=["users"],
     responses={400: {"message": "Not found"}}
 )
-# @router.patch("/login")
+# @router.post("/login")
 # async def login_form(form_data:OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db),):
 #     user = auth.check_exist_user(db, form_data.username, form_data.password)
 #     if not user:
