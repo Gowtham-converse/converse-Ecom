@@ -30,7 +30,7 @@
 │   │   ├── models      # Contains modules defining database models for Users,Role UserRole.
 │   │   ├── __init__.py
 │   │   ├── schemas.py   # Pydantic model for data validation
-│   │    ├── requirements.txt # Lists project requirements
+│   │   └──requirements.txt # Lists project requirements
 ```
 **/user/create-otp**: Api used to Create User by Signin **(post)**
 **/user/verify-otp**:Api used to Verify the User to  Signin once the otp verfied then the user created **(put)**
