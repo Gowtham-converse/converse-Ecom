@@ -114,8 +114,11 @@ async def login_token(form_data:schemas.User_Login, db: Session = Depends(get_db
 async def login_to_Otp(form_data:schemas.User_LoginBase, db: Session = Depends(get_db)):
     user = auth.check_exist_user_email(db, form_data.email_or_phonenumber)
     if not user:
+        
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email")
     else:
+       if user.is_active==False:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="you can't Access this site")
        OTP_data=config.generate_otp_and_hash()
        OTP = OTP_data["otp"]
        hash_otp= OTP_data["hash_otp"]
