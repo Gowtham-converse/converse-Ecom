@@ -7,6 +7,7 @@ import hashlib
 from fastapi import Depends
 from sqlalchemy import or_
 from project.core.auth import hash_password
+from typing import List, Dict
 
 
 ###copy
@@ -178,6 +179,14 @@ def delete_role_id(db: Session, db_role:int ):
     db.commit()
     return {"message": "Role deleted successfully"}
 
+def update_role_name(db: Session, role_id: int, new_name: str):
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if role:
+        role.name = new_name
+        db.commit()
+        db.refresh(role)
+    return role
+
 
 
 #To check user for forget user 
@@ -218,3 +227,95 @@ def create_roles(db:Session,name:str):
         db.refresh(role)
         return role
 
+
+
+
+#To create a Permission 
+def create_permission(db: Session, permission: schemas.PermissionCreate):
+    db_permission = models.Permission(action=permission)
+    db.add(db_permission)
+    db.commit()
+    db.refresh(db_permission)
+    return db_permission
+
+#To get all Permission
+def get_all_permissions(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Permission).offset(skip).limit(limit).all()
+# To check the permission exists or not
+def get_permission_exists(db: Session, permission_action: str):
+    single_permission=db.query(models.Permission).filter(models.Permission.action == permission_action).first()
+    if single_permission:
+        print(single_permission)
+        return single_permission
+#To get single Permission
+def get_permission_data(db:Session,permission_id:int):
+    permission_data=db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    return permission_data
+# to delete the permission 
+
+def delete_permission_id(db: Session, db_permission_id:int ):
+    permission=db.query(models.Permission).filter(models.Permission.id == db_permission_id).first()
+    db.delete(permission)
+    db.commit()
+    return {"message": "Permission  deleted successfully"}
+
+#To Update a Permission_name
+def update_permission_name(db: Session, permission_id: int, new_action: str):
+    permission = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    if permission:
+        permission.action = new_action
+        db.commit()
+        db.refresh(permission)
+    return permission
+
+#TO create the Role With Permission 
+def assign_permissions_to_role(db: Session, role_name: str, permissions: List[Dict]):
+    role = db.query(models.Role).filter(models.Role.name == role_name).first()
+    if not role:
+        return False
+    for perm in permissions:
+        # Step 2: Extract action and subject_class from the input
+        action = perm.action
+        subject_class = perm.subject_class
+        # Step 3: Check if the permission already exists
+        permission = db.query(models.Permission).filter(
+            models.Permission.action == action,
+            models.Permission.subject_class == subject_class
+        ).first()
+
+        if permission:
+            # Step 4: Check if this permission is already associated with the role
+            association = db.query(models.role_permissions).filter(
+                models.role_permissions.c.role_id == role.id,
+                models.role_permissions.c.permission_id == permission.id
+            ).first()
+
+            if not association:
+                # Step 5: If no association, insert new record in role_permissions table
+                stmt = models.role_permissions.insert().values(
+                    role_id=role.id,
+                    permission_id=permission.id,
+                    action=action,
+                    subject_class=subject_class
+                )
+                db.execute(stmt)
+        else:
+            # Step 6: If permission doesn't exist, create it
+            new_permission = models.Permission(
+                action=action,
+                subject_class=subject_class
+            )
+            db.add(new_permission)
+            db.commit()
+            # Step 7: After creating new permission, associate it with the role
+            stmt = models.role_permissions.insert().values(
+                role_id=role.id,
+                permission_id=new_permission.id,
+                action=action,
+                subject_class=subject_class
+            )
+            db.execute(stmt)
+
+    # Step 8: Commit the changes to the database
+    db.commit()
+    return True
