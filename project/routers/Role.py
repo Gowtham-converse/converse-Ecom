@@ -3,6 +3,7 @@ from project import crud,models,schemas,database
 from sqlalchemy.orm import Session
 from project.core import config,auth
 from project.database import get_db
+from project.core.authorizations import authorize
 
 router = APIRouter(
     prefix="/Role",
@@ -11,7 +12,8 @@ router = APIRouter(
 )
 
 @router.post("/create/role")
-async def create_role(name:schemas.Role,db:Session=Depends(get_db)):
+@authorize(allowed_permissions=['update','role'])
+async def create_role(name:schemas.Role,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
     name=name.name
 
     if crud.create_roles(db,name):
