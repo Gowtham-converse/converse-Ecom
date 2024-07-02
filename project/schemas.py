@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, validator,Field
-from typing import Optional
+from typing import List, Optional
 
 
 class User(BaseModel):
@@ -91,3 +91,28 @@ class refresh_Token(BaseModel):
       refresh_token:str
 
 #copy
+
+
+#permission base Structure
+
+class PermissionBase(BaseModel):
+    action: str
+    subject_class: str
+#To create a role with permission
+class RolePermission(PermissionBase):
+    pass
+#To create a Permission
+class PermissionCreate(BaseModel):
+    action:str
+class Permission(PermissionBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+#To change the Permission
+class UpdatePermissionNameRequest(BaseModel):
+    new_action: str
+
+class RolePermissionsAssign(BaseModel):
+    role_name: str
+    permissions: List[PermissionBase]

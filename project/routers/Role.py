@@ -29,7 +29,7 @@ async def delete_role(role_name:str, db: Session = Depends(get_db)):
     return crud.delete_role_id(db, role.id)
 
 #to update Role Name
-@router.put("/role/update/", response_model=schemas.Role)
+@router.put("/role/update/")
 def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, db: Session = Depends(get_db)):
     exists_role=crud.get_role(db,exists_role)
     role = crud.update_role_name(db, exists_role.id, request.new_name)
