@@ -23,7 +23,7 @@ class UserSingle(User):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class User_role(User):
@@ -52,6 +52,11 @@ class ResetPassword(BaseModel):
 class Role(BaseModel):
     name: str
 
+    class Config:
+        from_attributes = True
+
+class UpdateRoleNameRequest(BaseModel):
+    new_name: str
 
 class UpdateUserSchema(BaseModel):
     name: str

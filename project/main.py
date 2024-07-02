@@ -4,11 +4,11 @@ from project import crud, models, schemas
 from project.database import engine,Base,get_db
 from project import routers 
 from project.routers import User,Role
+from sqlalchemy.orm import configure_mappers
 
 
 
-
-
+# configure_mappers()
 models.Base.metadata.create_all(bind=engine)
 
 app=FastAPI()

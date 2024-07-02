@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException,status
+from fastapi import APIRouter,Depends,HTTPException,status,Body
 from project import crud,models,schemas,database
 from sqlalchemy.orm import Session
 from project.core import config,auth
@@ -28,6 +28,14 @@ async def delete_role(role_name:str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
     return crud.delete_role_id(db, role.id)
 
+#to update Role Name
+@router.put("/role/update/", response_model=schemas.Role)
+def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, db: Session = Depends(get_db)):
+    exists_role=crud.get_role(db,exists_role)
+    role = crud.update_role_name(db, exists_role.id, request.new_name)
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    return role
 
 #To get the Single User
 @router.get("single/{role_id}")

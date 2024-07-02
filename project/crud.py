@@ -178,6 +178,14 @@ def delete_role_id(db: Session, db_role:int ):
     db.commit()
     return {"message": "Role deleted successfully"}
 
+def update_role_name(db: Session, role_id: int, new_name: str):
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if role:
+        role.name = new_name
+        db.commit()
+        db.refresh(role)
+    return role
+
 
 
 #To check user for forget user 
