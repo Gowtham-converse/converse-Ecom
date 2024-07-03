@@ -14,22 +14,22 @@ from jose import JWTError
 
 
 router = APIRouter(
-    prefix="/user",
+    prefix="/users",
     tags=["users"],
     responses={400: {"message": "Not found"}}
 )
 
-# @router.post("/login")
-# async def login_form(form_data:OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db),):
-#     user = auth.check_exist_user(db, form_data.username, form_data.password)
-#     if not user:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
-#     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-#     refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRE_DAYS)
-#     access_token = auth.create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
-#     refresh_token = auth.create_refresh_token(data={"sub":str(user.id)}, expires_delta=refresh_token_expires)
-#     crud.update_refresh_token(db, refresh_token,user.id) #update the refresh_token to database
-#     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+@router.post("/login")
+async def login_form(form_data:OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db),):
+    user = auth.check_exist_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRE_DAYS)
+    access_token = auth.create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
+    refresh_token = auth.create_refresh_token(data={"sub":str(user.id)}, expires_delta=refresh_token_expires)
+    crud.update_refresh_token(db, refresh_token,user.id) #update the refresh_token to database
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 temp_user_data: Dict[str, dict] = {}
 
@@ -94,20 +94,20 @@ async def verify_otp(otp_data:schemas.UserCreate,db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
-#To Login Copy
-@router.post("/login")
-async def login_token(form_data:schemas.User_Login, db: Session = Depends(get_db),):
-    user = auth.check_exist_user(db, form_data.email_or_phonenumber, form_data.password)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRE_DAYS)
-    access_token = auth.create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
-    refresh_token = auth.create_refresh_token(data={"sub":str(user.id)}, expires_delta=refresh_token_expires)
+# #To Login Copy
+# @router.post("/login")
+# async def login_token(form_data:schemas.User_Login, db: Session = Depends(get_db),):
+#     user = auth.check_exist_user(db, form_data.email_or_phonenumber, form_data.password)
+#     if not user:
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+#     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+#     refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRE_DAYS)
+#     access_token = auth.create_access_token(data={"sub": str(user.id)}, expires_delta=access_token_expires)
+#     refresh_token = auth.create_refresh_token(data={"sub":str(user.id)}, expires_delta=refresh_token_expires)
 
-    crud.update_refresh_token(db, refresh_token,user.id) #update the refresh_token to database
+#     crud.update_refresh_token(db, refresh_token,user.id) #update the refresh_token to database
 
-    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+#     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 #otp for login
 @router.post("/request_otp")
@@ -237,9 +237,9 @@ async def Change_Forget_Password(user:schemas.ResetPassword,Otp:int,db:Session=D
         otp=Otp
         # user=db.query(models.User).filter(models.User.otp==otp).first()
         # print(user.email)
-        print("thi sspos sioubfd  password",otp)
+        print(otp)
         user_data=auth.Check_OTP_valid(db,otp)
-        print("hi jknkinvkisdnivfnsdivfndivfn",user_data.id)
+        print(user_data.id)
         if  user_data:
             user=user_data.id
             store_date=crud.ResetPassword(db,user,hash_Pwd)
@@ -248,25 +248,26 @@ async def Change_Forget_Password(user:schemas.ResetPassword,Otp:int,db:Session=D
 
 
 @router.post("/create/User_Role")
-async def create_user_role(user: schemas.User_role, db: Session = Depends(get_db),current_user=Depends(auth.get_current_user)):
+async def create_user_role(user: schemas.User_role, db: Session = Depends(get_db)):
     existing_user = crud.email_Phone_number_exists(user.email, user.phone_number, db)
-    if existing_user is None:
-        db_user = crud.create_user_role(db, user)
-        db_role = crud.get_role(db, user.roles)
-        print("role ",db_role)
+    if existing_user:
+        return {"message": "Email or Phone number already exists"}
+
+    try:
+        # Create the user
+        db_user_id = crud.create_user_role(db, user)
         
+        # Retrieve the role
+        db_role = crud.get_role(db, user.roles)
         if not db_role:
             raise HTTPException(status_code=404, detail="Role not found")
+        
+        # Create user-role association
+        crud.update_user_role(db, db_user_id, db_role.id)
+        return {"message": "User and Role created successfully"}
 
-        # Create user role association
-        try:
-            d=crud.update_user_role(db, db_user, db_role.id)
-            return {"message":"User and Role are created Successfully"}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to create user role: {str(e)}")
-    else:
-        return {"message": "Email or Phone number is already Exists"}
-
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create user role: {str(e)}")
 @router.put("/users/{user_id}")
 def update_user(user_id: int, user: schemas.UpdateUserSchema, db: Session = Depends(get_db)):
     
