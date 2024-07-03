@@ -39,13 +39,13 @@ def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, d
 
 #To get the Single User
 @router.get("single/{role_id}")
-async def single_role(role_id:int,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
+async def single_role(role_id:int,db:Session=Depends(get_db)):
     role=crud.get_role_id(db,role_id)
     return role
 
 #TO get All Roles
 @router.get("/all")
-async def all_roles(skip:int=0 ,limit:int=100 ,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
+async def all_roles(skip:int=0 ,limit:int=100 ,db:Session=Depends(get_db)):
     roles=crud.get_all_roles(db,skip,limit)
     if roles:
         return roles

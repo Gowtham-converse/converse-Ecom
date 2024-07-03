@@ -68,7 +68,7 @@ def delete_user(db: Session, db_user: models.User):
     db.delete(db_user)
     db.commit()
     return db_user
-#To create a user after opt verfication
+#To create a user after opt verification
 def Create_user(db:Session,user:schemas.UserCreate):
     db_user=models.User(**user.dict())
     db.add(db_user)
@@ -97,10 +97,16 @@ def create_user_role(db: Session, user: schemas.User_role):
 
 #To add a user_id and role_id in create_UserRole Table
 def update_user_role(db: Session, user_id: int, role_id: int):
-    db_user_role = models.UserRole(user_id=user_id, role_id=role_id)
-    db.add(db_user_role)
+    stmt = models.user_role.insert().values(user_id=user_id, role_id=role_id)
+    db.execute(stmt)
     db.commit()
-    db.refresh(db_user_role)
+    
+    # Optionally, if you want to return the inserted values, you can query the table:
+    db_user_role = db.query(models.user_role).filter(
+        models.user_role.c.user_id == user_id,
+        models.user_role.c.role_id == role_id
+    ).first()
+    
     return db_user_role
 
 
@@ -269,53 +275,38 @@ def update_permission_name(db: Session, permission_id: int, new_action: str):
     return permission
 
 #TO create the Role With Permission 
-def assign_permissions_to_role(db: Session, role_name: str, permissions: List[Dict]):
+def assign_permissions_to_role(db: Session, role_name: str, permissions: List[schemas.PermissionBase]):
     role = db.query(models.Role).filter(models.Role.name == role_name).first()
     if not role:
-        return False
+        return {"success": False, "message": "Role not found"}
+
     for perm in permissions:
-        # Step 2: Extract action and subject_class from the input
         action = perm.action
         subject_class = perm.subject_class
-        # Step 3: Check if the permission already exists
+
+        # Check if the permission already exists
         permission = db.query(models.Permission).filter(
-            models.Permission.action == action,
-            models.Permission.subject_class == subject_class
+            models.Permission.action == action
         ).first()
 
-        if permission:
-            # Step 4: Check if this permission is already associated with the role
-            association = db.query(models.role_permissions).filter(
-                models.role_permissions.c.role_id == role.id,
-                models.role_permissions.c.permission_id == permission.id
-            ).first()
+        if not permission:
+            return {"success": False, "message": f"Permission '{action}' for subject '{subject_class}' not found"}
 
-            if not association:
-                # Step 5: If no association, insert new record in role_permissions table
-                stmt = models.role_permissions.insert().values(
-                    role_id=role.id,
-                    permission_id=permission.id,
-                    action=action,
-                    subject_class=subject_class
-                )
-                db.execute(stmt)
-        else:
-            # Step 6: If permission doesn't exist, create it
-            new_permission = models.Permission(
-                action=action,
-                subject_class=subject_class
-            )
-            db.add(new_permission)
-            db.commit()
-            # Step 7: After creating new permission, associate it with the role
+        # Check if this permission is already associated with the role
+        association = db.query(models.role_permissions).filter(
+            models.role_permissions.c.role_id == role.id,
+            models.role_permissions.c.permission_id == permission.id
+        ).first()
+
+        if not association:
+            # Insert new record in role_permissions table
             stmt = models.role_permissions.insert().values(
                 role_id=role.id,
-                permission_id=new_permission.id,
-                action=action,
+                permission_id=permission.id,
                 subject_class=subject_class
             )
             db.execute(stmt)
 
-    # Step 8: Commit the changes to the database
+    # Commit the changes to the database
     db.commit()
-    return True
+    return {"success": True, "message": "Permissions assigned successfully"}
