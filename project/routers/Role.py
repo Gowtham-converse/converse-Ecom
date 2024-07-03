@@ -32,7 +32,8 @@ async def delete_role(role_name:str, db: Session = Depends(get_db),current_user=
 
 #to update Role Name
 @router.put("/role/update/")
-def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, db: Session = Depends(get_db)):
+@authorize(allowed_permissions=['update','role'])
+def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, db: Session = Depends(get_db),current_user=Depends(auth.get_current_user)):
     exists_role=crud.get_role(db,exists_role)
     role = crud.update_role_name(db, exists_role.id, request.new_name)
     if not role:
@@ -41,15 +42,14 @@ def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, d
 
 #To get the Single User
 @router.get("single/{role_id}")
-@authorize(allowed_permissions=['show','role'])
+@authorize(allowed_permissions=['read','role'])
 async def single_role(role_id:int,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
-
     role=crud.get_role_id(db,role_id)
     return role
 
-#TO get All Roles
+#To get All Roles
 @router.get("/all")
-@authorize(allowed_permissions=['show','role'])
+@authorize(allowed_permissions=['read','role'])
 async def all_roles(skip:int=0 ,limit:int=100 ,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
     roles=crud.get_all_roles(db,skip,limit)
     if roles:

@@ -30,9 +30,13 @@ def check_exist_user(db:Session,email_phonenumber:str,password:str): # check the
     else:
         user=crud.Check_user_Phone_number(db,email_phonenumber)
     # user=Check_user_email(db,email)
-    if not user or not verify_password(password, user.password) or  user.is_active==0:
-        return False
-    return user 
+    try:
+        if not user or not verify_password(password, user.password) or  user.is_active==0:
+            return False
+        return user 
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail=str(e))
+
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:

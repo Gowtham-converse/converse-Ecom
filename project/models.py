@@ -48,5 +48,5 @@ class Permission(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     action = Column(String)  # Action like create, read, update, delete
-    subject_class = Column(String)  # Subject class like User, etc.
+    #subject_class = Column(String)  # Subject class like User, etc.
     roles = relationship("Role", secondary=role_permissions, back_populates="permissions")

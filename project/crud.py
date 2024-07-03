@@ -116,9 +116,10 @@ def update_user_role(db: Session, user_id: int, role_id: int):
 #To Update User Details and Role
 def update_user_data(db: Session,user_id: int, user: schemas.UpdateUserSchema ):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    hashed_password=hash_password(user.password)
     if db_user:
         db_user.name=user.name
-        db_user.password=user.password
+        db_user.password=hashed_password
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -126,32 +127,33 @@ def update_user_data(db: Session,user_id: int, user: schemas.UpdateUserSchema ):
 
 
 #To Update User Details and Role
+
 def update_role_date(db: Session, user_id: int, user: schemas.UpdateUserSchema):
     role_name = user.roles
-    
+    # Fetch the role based on the role name
     role = db.query(models.Role).filter(models.Role.name == role_name).first()
-    user=db.query(models.User).filter(models.User.id == user_id).first()
-    if user:
-        if role:
-            user_role = db.query(models.UserRole).filter(
-                models.UserRole.user_id == user_id
-            ).first()
-            
-            if user_role:
-                user_role.role_id = role.id
-            else:
-                new_user_role = models.UserRole(user_id=user_id, role_id=role.id)
-                db.add(new_user_role)
-            
-            db.commit()
-            return {"detail": "Updated successfully"}
-        else:
-            return {"detail": "Role not found"}
-    else:
+    if not role:
+        return {"detail": "Role not found"}
+    # Fetch the user based on user ID
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
         return {"detail": "User not found"}
-    
-
-
+    # Check if the user role association exists
+    user_role = db.query(models.user_role).filter(
+        models.user_role.c.user_id == user_id
+    ).first()
+    if user_role:
+        # Update the existing association
+        stmt = models.user_role.update().where(
+            models.user_role.c.user_id == user_id
+        ).values(role_id=role.id)
+        db.execute(stmt)
+    else:
+        # Create a new association
+        stmt = models.user_role.insert().values(user_id=user_id, role_id=role.id)
+        db.execute(stmt)
+    db.commit()
+    return {"detail": "Updated successfully"}
     
 #To get Role already exists are not
 def get_role(db: Session, role_name: str):
