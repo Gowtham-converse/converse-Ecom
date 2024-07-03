@@ -10,9 +10,8 @@ router = APIRouter(
     tags=["Role"],
     responses={400: {"message": "Not found"}}
 )
-
 @router.post("/create/role")
-@authorize(allowed_permissions=['update','role'])
+@authorize(allowed_permissions=['create','role'])
 async def create_role(name:schemas.Role,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
     name=name.name
 
