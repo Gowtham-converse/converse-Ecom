@@ -15,7 +15,7 @@ role_permissions = Table(
     Base.metadata,
     Column('role_id', Integer, ForeignKey('roles.id'), primary_key=True),
     Column('permission_id', Integer, ForeignKey('permissions.id'), primary_key=True),
-    Column('action', String),
+    # Column('action', String),
     Column('subject_class', String)
 )
 

@@ -43,7 +43,7 @@ async def delete_permission(permission_name:str,db:Session=Depends(get_db)):
     if permission:
         return crud.delete_permission_id(db,permission.id)
     else:
-        return{"Message":"Permission name already exists"}
+        return{"Message":f"no permission name '{permission_name}'"}
      
 #TO update the Permission 
 @router.put("/permission/update/")
@@ -56,9 +56,8 @@ def Update_permission_name(exists_permission: str, request: schemas.UpdatePermis
 
 #Example usage in your API route or function
 @router.post("/roles/assign-permissions/")
-def assign_permissions(role_permissions: schemas.RolePermissionsAssign, db: Session = Depends(get_db)):
-    permission=role_permissions.permissions
-    result = crud.assign_permissions_to_role(db, role_permissions.role_name,permission)
-    if not result:
-        raise HTTPException(status_code=404, detail="Role not found")
-    return {"message": "Permissions assigned successfully"}
+def assign_permissions(role_permissions: schemas.RolePermissionsAssign,db: Session = Depends(get_db)):
+    result = crud.assign_permissions_to_role(db, role_permissions.role_name, role_permissions.permissions)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result

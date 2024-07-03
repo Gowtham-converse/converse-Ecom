@@ -43,6 +43,7 @@ def Update_role_name(exists_role: str, request: schemas.UpdateRoleNameRequest, d
 @router.get("single/{role_id}")
 @authorize(allowed_permissions=['show','role'])
 async def single_role(role_id:int,db:Session=Depends(get_db),current_user=Depends(auth.get_current_user)):
+
     role=crud.get_role_id(db,role_id)
     return role
 
