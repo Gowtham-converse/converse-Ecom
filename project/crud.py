@@ -7,6 +7,7 @@ import hashlib
 from fastapi import Depends
 from sqlalchemy import or_
 from project.core.auth import hash_password
+from typing import List, Dict
 
 
 ###copy
@@ -67,7 +68,7 @@ def delete_user(db: Session, db_user: models.User):
     db.delete(db_user)
     db.commit()
     return db_user
-#To create a user after opt verfication
+#To create a user after opt verification
 def Create_user(db:Session,user:schemas.UserCreate):
     db_user=models.User(**user.dict())
     db.add(db_user)
@@ -96,10 +97,16 @@ def create_user_role(db: Session, user: schemas.User_role):
 
 #To add a user_id and role_id in create_UserRole Table
 def update_user_role(db: Session, user_id: int, role_id: int):
-    db_user_role = models.UserRole(user_id=user_id, role_id=role_id)
-    db.add(db_user_role)
+    stmt = models.user_role.insert().values(user_id=user_id, role_id=role_id)
+    db.execute(stmt)
     db.commit()
-    db.refresh(db_user_role)
+    
+    # Optionally, if you want to return the inserted values, you can query the table:
+    db_user_role = db.query(models.user_role).filter(
+        models.user_role.c.user_id == user_id,
+        models.user_role.c.role_id == role_id
+    ).first()
+    
     return db_user_role
 
 
@@ -178,6 +185,14 @@ def delete_role_id(db: Session, db_role:int ):
     db.commit()
     return {"message": "Role deleted successfully"}
 
+def update_role_name(db: Session, role_id: int, new_name: str):
+    role = db.query(models.Role).filter(models.Role.id == role_id).first()
+    if role:
+        role.name = new_name
+        db.commit()
+        db.refresh(role)
+    return role
+
 
 
 #To check user for forget user 
@@ -218,3 +233,80 @@ def create_roles(db:Session,name:str):
         db.refresh(role)
         return role
 
+
+
+
+#To create a Permission 
+def create_permission(db: Session, permission: schemas.PermissionCreate):
+    db_permission = models.Permission(action=permission)
+    db.add(db_permission)
+    db.commit()
+    db.refresh(db_permission)
+    return db_permission
+
+#To get all Permission
+def get_all_permissions(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Permission).offset(skip).limit(limit).all()
+# To check the permission exists or not
+def get_permission_exists(db: Session, permission_action: str):
+    single_permission=db.query(models.Permission).filter(models.Permission.action == permission_action).first()
+    if single_permission:
+        print(single_permission)
+        return single_permission
+#To get single Permission
+def get_permission_data(db:Session,permission_id:int):
+    permission_data=db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    return permission_data
+# to delete the permission 
+
+def delete_permission_id(db: Session, db_permission_id:int ):
+    permission=db.query(models.Permission).filter(models.Permission.id == db_permission_id).first()
+    db.delete(permission)
+    db.commit()
+    return {"message": "Permission  deleted successfully"}
+
+#To Update a Permission_name
+def update_permission_name(db: Session, permission_id: int, new_action: str):
+    permission = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
+    if permission:
+        permission.action = new_action
+        db.commit()
+        db.refresh(permission)
+    return permission
+
+#TO create the Role With Permission 
+def assign_permissions_to_role(db: Session, role_name: str, permissions: List[schemas.PermissionBase]):
+    role = db.query(models.Role).filter(models.Role.name == role_name).first()
+    if not role:
+        return {"success": False, "message": "Role not found"}
+
+    for perm in permissions:
+        action = perm.action
+        subject_class = perm.subject_class
+
+        # Check if the permission already exists
+        permission = db.query(models.Permission).filter(
+            models.Permission.action == action
+        ).first()
+
+        if not permission:
+            return {"success": False, "message": f"Permission '{action}' for subject '{subject_class}' not found"}
+
+        # Check if this permission is already associated with the role
+        association = db.query(models.role_permissions).filter(
+            models.role_permissions.c.role_id == role.id,
+            models.role_permissions.c.permission_id == permission.id
+        ).first()
+
+        if not association:
+            # Insert new record in role_permissions table
+            stmt = models.role_permissions.insert().values(
+                role_id=role.id,
+                permission_id=permission.id,
+                subject_class=subject_class
+            )
+            db.execute(stmt)
+
+    # Commit the changes to the database
+    db.commit()
+    return {"success": True, "message": "Permissions assigned successfully"}
